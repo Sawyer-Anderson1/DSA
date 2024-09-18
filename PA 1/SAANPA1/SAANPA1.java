@@ -1,10 +1,10 @@
+import java.io.PrintWriter;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
 public class SAANPA1 {
-    public class circularLinkedList {
-        Node head; // creating the header node
+    public static class circularLinkedList {
         Node[] rowHeaders;
         Node[] columnHeaders;
         int n;
@@ -28,13 +28,13 @@ public class SAANPA1 {
 
         public circularLinkedList add(circularLinkedList list, int i, int j, int x) {
             Node new_Node = new Node(i,j,x);
-            Node rowIterator = rowHeaders[i];
-            Node columnIterator = columnHeaders[j];
+            Node rowIterator = rowHeaders[i - 1];
+            Node columnIterator = columnHeaders[j - 1];
 
-            while (rowIterator.columnIndex < j) {
+            while (rowIterator.columnIndex < j - 1) {
                 rowIterator = rowIterator.nextRight;
             }
-            while (columnIterator.rowIndex < i){
+            while (columnIterator.rowIndex < i - 1){
                 columnIterator = columnIterator.nextDown;
             }
 
@@ -46,33 +46,35 @@ public class SAANPA1 {
             columnIterator.nextDown = new_Node;
 
             if (new_Node.nextRight == null && new_Node.nextDown == null) {
-                new_Node.nextRight = rowHeaders[i];
-                new_Node.nextDown = columnHeaders[j];
+                new_Node.nextRight = rowHeaders[i - 1];
+                new_Node.nextDown = columnHeaders[j - 1];
             } else if (new_Node.nextRight == null) {
-                new_Node.nextRight = rowHeaders[i];
+                new_Node.nextRight = rowHeaders[i - 1];
             } else if (new_Node.nextDown == null) {
-                new_Node.nextDown = columnHeaders[j];
+                new_Node.nextDown = columnHeaders[j - 1];
             } // for the first nodes in a row and/or column, linking the node's next to the header
 
             return list;
         }
 
         public Node rowIterate(int i, int j) {
-            Node iterator = rowHeaders[i];
+            Node iterator = rowHeaders[i - 1];
 
             int column = 1;
-            while (iterator.columnIndex != j || column <= n) {
-                    iterator = iterator.nextRight;
+            while (iterator.columnIndex != j || column <= j - 1) {
+                iterator = iterator.nextRight;
+                column++;
             }
 
             return iterator;
         }
         public Node colIterate(int i, int j) {
-            Node iterator = columnHeaders[j];
+            Node iterator = columnHeaders[j - 1];
 
             int row = 1;
-            while (iterator.rowIndex != i || row <= n) {
+            while (iterator.rowIndex != i || row < j) {
                 iterator = iterator.nextDown;
+                row++;
             }
 
             return iterator;
@@ -95,14 +97,16 @@ public class SAANPA1 {
         }
     }
 
-    public class SparseMatrix {
+    public static class SparseMatrix {
+        circularLinkedList finalMatrix;
         Scanner reader;
         int n;
 
+        public SparseMatrix() {}
         public SparseMatrix(String inputFile) {
             try {
                 File reading = new File(inputFile);
-                Scanner reader = new Scanner(reading);
+                reader = new Scanner(reading);
 
                 readInFile();
             } catch (FileNotFoundException e) {
@@ -122,7 +126,7 @@ public class SAANPA1 {
             // implement the matrix one
             circularLinkedList matrix1 = new circularLinkedList(n);
 
-            if (reader.nextLine() != ",,") {
+            if (!reader.nextLine().equals(",,")) {
                 int i = Integer.parseInt(reader.next()); // get row index
                 reader.next(); // skip ,
                 int j = Integer.parseInt(reader.next()); // get column index
@@ -131,7 +135,7 @@ public class SAANPA1 {
 
                 matrix1.add(matrix1, i, j, value);
 
-                while (reader.nextLine() != ",,") {
+                while (!reader.nextLine().equals(",,")) {
                     i = Integer.parseInt(reader.next()); // get row index
                     reader.next(); // skip ,
                     j = Integer.parseInt(reader.next()); // get column index
@@ -144,11 +148,11 @@ public class SAANPA1 {
             } else {
                 // handle if there were no values in a matrix
             }
-            if (operationType == "A" || operationType == "M") {
+            if (operationType.equals("A") || operationType.equals("M")) {
                 // implement the matrix two
                 circularLinkedList matrix2 = new circularLinkedList(n);
 
-                if (reader.hasNextLine() || reader.nextLine() != " ") {
+                if (reader.hasNextLine() || !reader.nextLine().equals(" ")) {
                     int i = Integer.parseInt(reader.next()); // get row index
                     reader.next(); // skip ,
                     int j = Integer.parseInt(reader.next()); // get column index
@@ -157,7 +161,7 @@ public class SAANPA1 {
 
                     matrix2.add(matrix2, i, j, value);
 
-                    while (reader.hasNextLine() || reader.nextLine() != " ") {
+                    while (reader.hasNextLine()) {
                         i = Integer.parseInt(reader.next()); // get row index
                         reader.next(); // skip ,
                         j = Integer.parseInt(reader.next()); // get column index
@@ -179,20 +183,23 @@ public class SAANPA1 {
                         matrixMultiplication(matrix1, matrix2);
                         break;
                 }
-            } else if (operationType == "S") {
+            } else if (operationType.equals("S")) {
                 int scalar = 0;
-                while (reader.next() !=",") {
-                    scalar = Integer.parseInt(reader.next());
+                while (reader.next().equals(",")) {
+                    scalar = reader.nextInt();
                 }
                 scalarMultiplication(matrix1, scalar);
-            } else {
+            } else if (operationType.equals("T")){
                 matrixTransposition(matrix1);
             }
+
+            reader.close();
         }
 
         public circularLinkedList matrixAddition(circularLinkedList matrix1, circularLinkedList matrix2) {
-            circularLinkedList finalMatrix = new circularLinkedList(n);
+            finalMatrix = new circularLinkedList(n);
             int x;
+
             for (int i = 1; i <= n; i++) {
                 for (int j = 1; j <= n; j++) {
                     if ((matrix1.rowIterate(i, j).columnIndex == j && matrix2.rowIterate(i, j).columnIndex == j) &&
@@ -213,7 +220,7 @@ public class SAANPA1 {
         }
 
         public circularLinkedList matrixMultiplication(circularLinkedList matrix1, circularLinkedList matrix2) {
-            circularLinkedList finalMatrix = new circularLinkedList(n);
+            finalMatrix = new circularLinkedList(n);
             int v = 0;
 
             for (int row = 1; row <= n; row++) {
@@ -224,6 +231,8 @@ public class SAANPA1 {
                             v = matrix1.rowIterate(row, i).data * matrix2.rowIterate(i, j).data;
 
                             v += v;
+                        } else {
+                            v = 0;
                         }
                     }
                     finalMatrix.add(finalMatrix, row, j, v);
@@ -234,25 +243,78 @@ public class SAANPA1 {
         }
 
         public circularLinkedList matrixTransposition(circularLinkedList matrix1) {
-            circularLinkedList finalMatrix = new circularLinkedList(n);
+            finalMatrix = new circularLinkedList(n);
+            int x = 0;
 
+            for (int i = 1; i <= n; i++) {
+                for (int j = 1; j <= n; j++) {
+                    if (matrix1.rowIterate(i, j).columnIndex == j && matrix1.colIterate(i, j).rowIndex == i) {
+                        x = matrix1.rowIterate(i, j).data;
+                    } else {
+                        x = 0;
+                    }
+                    finalMatrix.add(finalMatrix, j, i, x);
+                }
+            }
             return finalMatrix;
         }
 
         public circularLinkedList scalarMultiplication(circularLinkedList matrix1, int scalar) {
-            circularLinkedList finalMatrix = new circularLinkedList(n);
+            finalMatrix = new circularLinkedList(n);
+            int x = 0;
 
+            for (int i = 1; i <= n; i++) {
+                for (int j = 1; j <= n; j++) {
+                    if (matrix1.rowIterate(i, j).columnIndex == j && matrix1.colIterate(i, j).rowIndex == i) {
+                        x = matrix1.rowIterate(i, j).data * scalar;
+                    } else {
+                        x = 0;
+                    }
+                    finalMatrix.add(finalMatrix, i, j, x);
+                }
+            }
             return finalMatrix;
+        }
+
+        public void write(String outputFile) {
+            try {
+                File outputF = new File(outputFile);
+                PrintWriter output = new PrintWriter(outputFile);
+                outputF.createNewFile();
+
+                for (int i = 1; i <= n; i++) {
+                    for (int j = 1; j <= n; j++) {
+                        if (finalMatrix.rowIterate(i, j).columnIndex == j && finalMatrix.colIterate(i, j).rowIndex == i) {
+                            if (finalMatrix.rowIterate(i, j).data != 0) {
+                                output.println(i + "," + j + "," + finalMatrix.rowIterate(i, j).data);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.out.print("Error");
+            }
         }
     }
 
-    public void main(String[] args) {
+    public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
 
         System.out.print("Enter a file name: ");
         String inputFile = input.next();
 
         SparseMatrix sparseMatrix = new SparseMatrix(inputFile);
-        // write into output here sparseMatrix.write();
+
+        String outputFile = "";
+        for (int cIndex = 0; cIndex < inputFile.length(); cIndex++) {
+            if (cIndex < (inputFile.length() - 1) && String.valueOf(inputFile.charAt(cIndex + 1)).equals(".")) {
+                outputFile = outputFile.concat(String.valueOf(inputFile.charAt(cIndex)));
+                outputFile = outputFile.concat("_output");
+            } else {
+                outputFile = outputFile.concat(String.valueOf(inputFile.charAt(cIndex)));
+            }
+        }
+
+        sparseMatrix.write(outputFile);
     }
 }
