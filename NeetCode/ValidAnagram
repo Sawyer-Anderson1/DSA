@@ -1,0 +1,33 @@
+class Solution {
+    public boolean isAnagram(String s, String t) {
+        // I can compare every character in string s with those of string t
+        // Or I can take the letters of string s and put them alphabetical order
+        // (within a array)
+        // and compare with eachother
+        boolean[] anagram;
+        if (t.length() > s.length()) {
+            anagram = new boolean[t.length()];
+        } else {
+            anagram = new boolean[s.length()];
+        }
+
+        for (int i = 0; i < s.length(); i++) {
+            for (int j = 0; j < t.length(); j++) {
+                if (anagram[j] == false) {
+                    if (String.valueOf(s.charAt(i)).equals(String.valueOf(t.charAt(j)))) {
+                        anagram[j] = true; 
+                        break;
+                    }
+                }
+            }
+        }
+
+        boolean anagram_true = true;
+        for (int i = 0; i < anagram.length; i++) {
+            if (anagram[i] == false) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
