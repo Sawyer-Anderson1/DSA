@@ -1,0 +1,40 @@
+public class PrefixSum {
+    public void sum (int[] nums, int k) {
+        int sum = 0;
+
+        // if we want the sum without the prefix
+        for (int i = k; i < nums.length; i++) {
+            sum += nums[i];
+        }
+
+        System.out.println(sum);
+
+        sum = 0;
+        // if we want the sum of the prefixes
+        for (int i = 0; i < k; i++) {
+            sum += nums[i];
+        }
+
+        System.out.println(sum);
+
+        // using pref array that holds what the prefix sum is at all values of k (to make the algorithm more versatile and be able to be used in a sliding window)
+        int[] pref = new int[nums.length + 1];
+        pref[0] = 0; // the prefix sum of for k = 0
+        for (int i = 0; i < nums.length; i++) {
+            pref[i + 1] = pref[i] + nums[i];
+        }
+
+        System.out.print("The prefix sum array: ");
+        for (int i = 0; i < pref.length; i++) {
+            System.out.print(pref[i] + " ");
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] numbers = {1, 2, 3, 4, 5, 6};
+        int k = 3;
+
+        PrefixSum prefix_Sum = new PrefixSum();
+        prefix_Sum.sum(numbers, k);
+    }
+}
