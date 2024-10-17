@@ -1,0 +1,188 @@
+// This is Sawyer Anderson's Programming Assignment 3:
+// Implementing the improved "monkey simulation" using hash table for the map
+
+// includes
+import java.io.*;
+import java.util.Scanner;
+
+public class SAANPA3 {
+    // Some global variables and the map
+    SAANPA2.BST<String> map;
+    static int inputSize = 0;
+    String firstK = "";
+
+    // The class that creates the CharDistribution object
+    public static class CharDistribution {
+        // The vector that holds the counter for each character possible in this problem,
+        // That is '[a-z]' and ' ' (which will be index 26)
+        int[] charCounter = new int[27];
+
+        // the constructor takes the input size of the text file
+        CharDistribution() {
+        }
+
+        // The method that increments the counter of characters
+        void occurs(char c) {
+            if (String.valueOf(c).equals(" ")) {
+                charCounter[26]++;
+            } else {
+                charCounter[c - 'a']++;
+            }
+        }
+
+        // The method/function that returns a random character using the way described in the instructions
+        char getRandomChar() {
+            // get the random number
+            int randomNum = (int) (Math.random() * ((inputSize - 1) + 1)) + 1;
+
+            // now scan through the vector of counters, keep cumulative sum
+            int sum = 0;
+            for (int i = 0; i < charCounter.length; i++) {
+                sum += charCounter[i];
+
+                if (sum > randomNum) {
+                    if (i == 26) {
+                        return ' ';
+                    } // else
+                    return (char) i;
+                }
+            }
+
+            // place holder
+            return 'a';
+        }
+    }
+
+    // the map: hash table
+
+    // end of BST implementation
+
+    // writes to file once the output is handled
+    void writeFile(BufferedWriter writer, int w, int length) {
+        int count = w; // the first w characters are already part of the output
+        int wCount = 0;
+        StringBuilder kWriter = new StringBuilder(firstK);
+
+        while (count <= length) {
+            if (wCount < w) { // get to the sequence k of length w
+                wCount++;
+            } else { // when there start getting the characters that will be added
+                // get the distribution
+                SAANPA2.CharDistribution dis = map.find(kWriter.toString());
+                // get the appropriate character for that distribution.
+                if (dis != null) {
+                    char c = dis.getRandomChar();
+
+                    // writing the new character c
+                    try {
+                        writer.write(c); // writes
+                    } catch (IOException e) {
+                        System.out.println("Failure to write.");
+                    }
+
+                    // update sequence kWriter so that it is incorporates the new character c
+                    kWriter.deleteCharAt(0);
+                    kWriter.append(c);
+                }
+            }
+            count++;
+        }
+    }
+
+    // gets input size
+    void getInputSize() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("resources/merchant.txt"))) {
+            // getting the input size (to help with the getRandomChar algo
+            String line;
+            int count = 0;
+            while ((line = reader.readLine()) != null) {
+                count += line.length();
+            }
+            inputSize = count;
+        } catch (IOException e) {
+            System.out.println("Error with finding size of input file (reading).");
+        }
+    }
+
+    // reads file
+    void readFile(int w, BufferedWriter writer) {
+        // Read file and create the distributions
+        try (BufferedReader reader = new BufferedReader(new FileReader("resources/merchant.txt"))) {
+            // CharDistribution[] c = new CharDistribution[27^w]; this would be the total distributions
+            int uniChar; // what is reader by reader.read()
+            int wCount = 0; // the counter that keeps the string k to the length of the w
+            StringBuilder k = new StringBuilder(""); // the sequence k
+
+            while (reader.ready()) { // -1 indicates the EOF
+                if (wCount < w) { // wCount is only relevant for the first w characters
+                    uniChar = reader.read();
+                    // creating what wll be the first k to the CharDistribution
+                    k.append((char) uniChar);
+
+                    wCount++;
+                    continue; // makes sure that as ony as the first
+                    // w characters haven't been read that it doesn't start with the below operations
+                }
+
+                // When all first w characters are read
+                // This conditional statement is done once
+                // we read in the characters in lengths of w and then add the character
+                // after into the CharDistribution
+                if (wCount == w) {
+                    // adding the first w characters to the writer/output.txt
+                    writer.write(k.toString());
+                    firstK = k.toString();
+
+                    wCount++; // so it will continue with the below operations and not return to this statement
+                }
+
+                // after the first w characters:
+                // updating or creating a CharDistribution for the particular sequence k
+                // find if the map has an element with key k, get the reference
+                SAANPA2.CharDistribution dis = map.find(k.toString());
+
+                // get next char (the one that get incremented in the CharDistribution of the map's node
+                uniChar = reader.read();
+                char c = (char) uniChar;
+                map.insert(k.toString(), dis, c);
+
+                k.deleteCharAt(0); // remove the first element since we are shifting k
+                k.append(c); // new key k
+            }
+        } catch (IOException e) {
+            System.out.println("Error with reading input file's characters.");
+        }
+    }
+
+    // the constructor for the class SAANPA2
+    public SAANPA3(int w, int length) {
+        // intialize the map
+        // map = new SAANPA3.BST<String>();
+
+        try {
+            // creating the buffered writer and output file, with FileWriter append flag set to true
+            BufferedWriter writer = new BufferedWriter(new FileWriter("resources/output.txt", true));
+
+            // call the functions of SAANPA2
+            getInputSize();
+            readFile(w, writer);
+            // call the writer
+            writeFile(writer, w, length);
+        } catch (IOException e) {
+            System.out.println("Output file not able to be written to.");
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+
+        System.out.print("Enter the window size: ");
+        int w = input.nextInt();
+
+        System.out.print("Enter the length of the output text: ");
+        int length = input.nextInt();
+
+        // call SAANPA2 class constructor
+        SAANPA3 read = new SAANPA3(w, length);
+    }
+}
