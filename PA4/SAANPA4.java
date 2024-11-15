@@ -38,10 +38,12 @@ public class SAANPA4 {
             for (int i = 0; i < arr.size(); i++) {
                 if (i == 26) {
                     Element<Integer, Character> e = new Element<>(arr.get(i), ' ');
-                    P.add(i + 1, e);
+                    int index = i + 1;
+                    P.add(index, e);
                 } else {
                     Element<Integer, Character> e = new Element<>(arr.get(i), Character.valueOf((char) (i + 'a')));
-                    P.add(i + 1, e);
+                    int index = i + 1;
+                    P.add(index, e);
                 }
             }
 
@@ -205,6 +207,7 @@ public class SAANPA4 {
 
     // writes to file once the output is handled
     void writeFile(BufferedWriter writer) {
+        // writing the the bitstrings of the 27 characters read from the input file
         for (int i = 0; i < 27; i++) {
             // writing the new bitstring for the character represented at that specific index
             try {
@@ -213,7 +216,23 @@ public class SAANPA4 {
                 System.out.println("Failure to write.");
             }
         }
-        
+
+        int HuffmanCount = 0;
+        int bit7Count = 0;
+        // writing the bit strings for the first N characters of the input file
+        for (int i = 0; i < firstNChars.size(); i++) {
+            bit7Count += 7;
+            int index = firstNChars.get(i) - 'a';
+            HuffmanCount += Integer.valueOf(bitStrings.get(index));
+
+            String s = bitStrings.get(index) + " " + HuffmanCount + " " + bit7Count;
+            try {
+                writer.write(s);
+            } catch (IOException e) {
+                System.out.println("Failure to write.");
+            }
+        }
+
         try {
             // After writing the output
             writer.flush();
@@ -238,21 +257,24 @@ public class SAANPA4 {
             }
 
             int uniChar; // what is reader by reader.read()
+            int count = 0;
+            while (count <= N) { // -1 indicates the EOF
+                if (reader.ready()) {
+                    uniChar = reader.read();
+                    char c = (char) uniChar;
+                    if ((c < 'a' || c > 'z') && c != ' ') {
+                        continue; // skipping non-letter, non-space characters
+                    }
 
-            while (reader.ready()) { // -1 indicates the EOF
-                uniChar = reader.read();
-                char c = (char) uniChar;
-                if ((c < 'a' || c > 'z') && c != ' ') {
-                    continue; // skipping non-letter, non-space characters
-                }
-
-                if (c == ' ') {
-                    freqArr.add(26, freqArr.get(26) + 1);
-                    firstNChars.add(c);
-                } else {
-                    int index = (c - 'a');
-                    firstNChars.add(c);
-                    freqArr.add(index, freqArr.get(index) + 1);
+                    if (c == ' ') {
+                        freqArr.add(26, freqArr.get(26) + 1);
+                        firstNChars.add(Character.valueOf(c));
+                    } else {
+                        int index = (c - 'a');
+                        firstNChars.add(Character.valueOf(c));
+                        freqArr.add(index, freqArr.get(index) + 1);
+                    }
+                    count++;
                 }
             }
             // after the array of frequencies are made
