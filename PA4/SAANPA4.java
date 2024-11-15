@@ -4,7 +4,10 @@ import java.util.Scanner;
 
 public class SAANPA4 {
     // Some global variables and the priority queue
-    SAANPA4.priorityQueue pq;
+    priorityQueue pq;
+    ArrayList<Character> firstNChars = new ArrayList<>();
+    ArrayList<String> bitStrings = new ArrayList<>(27);
+    ArrayList<Element<Integer, Character>> P;
 
     // Data structure: Priority Queue
     public class Element<K, V> {
@@ -21,8 +24,6 @@ public class SAANPA4 {
         }
     }
     public class priorityQueue {
-        private ArrayList<Element<Integer, Character>> P;
-        // private ArrayList<Element<Integer, Character>> T;
         int size;
 
         public priorityQueue() {P = new ArrayList<>(28);}
@@ -175,47 +176,44 @@ public class SAANPA4 {
                 P.get(index).key = P.get(index).key + 1;
             }*/
         }
-
-        // the T-insert operation
-        public void T_insert(Element<Integer, Character> T) {
-
-        }
     }
     // End of data structure implementation
 
-    /*
+    // functions that traverses "T" tree from the last remaining node in P array/tree
+    //      creating the bitstrings for each letter then adding those bit strings to an array
+    void bitStringCreation() {
+        // for every character we find the bitstring
+        for (int i = 0; i < bitStrings.size(); i++) {
+            String bitString = "";
+
+            // call the functions that traverses using pre-order
+            preorderTraversal(P.get(1), bitString);
+        }
+    }
+    void preorderTraversal(Element e, String s) {
+        if (e.left == null && e.right == null && e.value != null) {
+            // add the bitstring to the array of them (at the right position)
+            int index = (char) e.value - 'a';
+            bitStrings.add(index, s);
+
+            return;
+        }
+
+        preorderTraversal(e.left, s + "0");
+        preorderTraversal(e.right, s + "1");
+    }
+
     // writes to file once the output is handled
-    void writeFile(BufferedWriter writer, int N) {
-        int count = w; // the first w characters are already part of the output
-        StringBuilder kWriter = new StringBuilder(firstK);
-
-        try {
-            writer.write(firstK);
-        } catch (IOException e) {
-            System.out.println("Couldn't write first w elements to file");
-        }
-
-        while (count < N) {
-            // get the distribution
-            CharDistribution dis = map.find(kWriter.toString());
-            // get the appropriate character for that distribution.
-            if (dis != null) {
-                char c = dis.getRandomChar();
-
-                // writing the new character c
-                try {
-                    writer.write(c); // writes
-                } catch (IOException e) {
-                    System.out.println("Failure to write.");
-                }
-
-                // update sequence kWriter so that it is incorporates the new character c
-                kWriter.deleteCharAt(0);
-                kWriter.append(c);
+    void writeFile(BufferedWriter writer) {
+        for (int i = 0; i < 27; i++) {
+            // writing the new bitstring for the character represented at that specific index
+            try {
+                writer.write(bitStrings.get(i)); // writes
+            } catch (IOException e) {
+                System.out.println("Failure to write.");
             }
-            count++;
         }
-
+        
         try {
             // After writing the output
             writer.flush();
@@ -225,7 +223,7 @@ public class SAANPA4 {
         }
 
     }
-    */
+
 
     // reads file
     void readFile(int N) {
@@ -250,9 +248,10 @@ public class SAANPA4 {
 
                 if (c == ' ') {
                     freqArr.add(26, freqArr.get(26) + 1);
+                    firstNChars.add(c);
                 } else {
                     int index = (c - 'a');
-
+                    firstNChars.add(c);
                     freqArr.add(index, freqArr.get(index) + 1);
                 }
             }
@@ -271,11 +270,10 @@ public class SAANPA4 {
             // creating the buffered writer and output file, with FileWriter append flag set to true
             BufferedWriter writer = new BufferedWriter(new FileWriter("resources/output.txt", true));
 
-            // call the functions of SAANPA2
-            // getInputSize();
+            // call the functions of SAANPA4
             readFile(N);
             // call the writer
-            // writeFile(writer, N);
+            writeFile(writer);
         } catch (IOException e) {
             System.out.println("Output file not able to be written to.");
         }
